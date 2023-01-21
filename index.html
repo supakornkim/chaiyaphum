@@ -1,17 +1,49 @@
-<div id="image-container"></div>
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      img, video {
+        max-width: 100%;
+      }
+      
+      @media (min-width: 768px) {
+        img, video {
+          width: 50%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="media-container"></div>
 
-<script>
-  // Fetch the images from the GitHub repository
-  fetch("https://api.github.com/repos/supakornkim/chaiyaphum/contents")
-    .then(response => response.json())
-    .then(data => {
-      // Iterate through the array of images
-      data.forEach(image => {
-        // Create an image element and set its source to the image's URL
-        var img = document.createElement("img");
-        img.src = image.download_url;
-        // Append the image to the image container
-        document.getElementById("image-container").appendChild(img);
-      });
-    });
-</script>
+    <script>
+      // Fetch the files from the GitHub repository
+      fetch("https://api.github.com/repos/supakornkim/chaiyaphum/contents")
+        .then(response => response.json())
+        .then(data => {
+          // Iterate through the array of files
+          data.forEach(file => {
+              // Check if the file is an image file
+              if (file.name.match(/\.(jpeg|jpg|gif|png)$/)) {
+                  // Create an image element and set its source to the file's URL
+                  var img = document.createElement("img");
+                  img.src = file.download_url;
+                  img.alt = "image from repository";
+                  // Append the image to the media container
+                  document.getElementById("media-container").appendChild(img);
+              } else if (file.name.match(/\.(mp4|webm)$/)) {
+                // Create a video element and set its source to the file's URL
+                var video = document.createElement("video");
+                var source = document.createElement("source");
+                source.src = file.download_url;
+                video.appendChild(source);
+                video.controls = true;
+                video.alt = "video from repository";
+                // Append the video to the media container
+                document.getElementById("media-container").appendChild(video);
+              }
+          });
+        });
+    </script>
+  </body>
+</html>
