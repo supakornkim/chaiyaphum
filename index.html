@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script src="https://cdn.jsdelivr.net/npm/vue"></script>
     <style>
       img, video {
         max-width: 100%;
@@ -11,39 +12,91 @@
           width: 50%;
         }
       }
+      
+      /* Add styles for the loading spinner */
+      .loading {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px;
+      }
+      
+      .spinner {
+        border: 8px solid #f3f3f3;
+        border-top: 8px solid #3498db;
+        border-radius: 50%;
+        width: 50px;
+        height: 50px;
+        animation: spin 2s linear infinite;
+      }
+      
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
-    <div id="media-container"></div>
+    <div id="app">
+      <div id="media-container">
+        <div v-if="loading" class="loading">
+          <div class="spinner"></div>
+        </div>
+        <template v-for="file in currentData">
+          <div v-if="isImage(file.name)" class="image-container">
+            <img :src="file.download_url" alt="image from repository">
+            <a :href="file.download_url" :download="file.name">{{ file.name }}</a>
+          </div>
+          <div v-else-if="isVideo(file.name)" class="video-container">
+            <video :src="file.download_url" controls alt="video from repository"></video>
+            <a :href="file.download_url" :download="file.name">{{ file.name }}</a>
+          </div>
+        </template>
+      </div>
+      <div id="pagination">
+        <button v-for="page in pages" @click="displayPage(page)">{{ page }}</button>
+      </div>
+    </div>
 
     <script>
-      // Fetch the files from the GitHub repository
-      fetch("https://api.github.com/repos/supakornkim/chaiyaphum/contents")
-        .then(response => response.json())
-        .then(data => {
-          // Iterate through the array of files
-          data.forEach(file => {
-              // Check if the file is an image file
-              if (file.name.match(/\.(jpeg|jpg|gif|png)$/)) {
-                  // Create an image element and set its source to the file's URL
-                  var img = document.createElement("img");
-                  img.src = file.download_url;
-                  img.alt = "image from repository";
-                  // Append the image to the media container
-                  document.getElementById("media-container").appendChild(img);
-              } else if (file.name.match(/\.(mp4|webm)$/)) {
-                // Create a video element and set its source to the file's URL
-                var video = document.createElement("video");
-                var source = document.createElement("source");
-                source.src = file.download_url;
-                video.appendChild(source);
-                video.controls = true;
-                video.alt = "video from repository";
-                // Append the video to the media container
-                document.getElementById("media-container").appendChild(video);
-              }
-          });
-        });
+      var app = new Vue({
+        el: "#app",
+        data: {
+          files: [],
+          currentPage: 1,
+          loading: true
+        },
+        computed: {
+          pages() {
+            return Math.ceil(this.files.length / 10);
+          },
+          currentData() {
+            var start = (this.currentPage - 1) * 10;
+            var end = start + 10;
+            return this.files.slice(start, end);
+          }
+        },
+        mounted() {
+          fetch("https://api.github.com/repos/supakornkim/chaiyaphum/contents")
+            .then(response => response.json())
+            .then(data => {
+              this.files = data;
+              this.loading = false;
+              this.displayPage(1);
+            });
+        },
+        methods: {
+          displayPage(page) {
+            this.currentPage = page;
+          },
+          isImage(fileName) {
+            return fileName.match(/\.(jpeg|jpg|gif|png)$/);
+          },
+          isVideo(fileName) {
+            return fileName.match(/\.(mp4|webm)$/);
+          }
+        }
+      });
     </script>
   </body>
 </html>
