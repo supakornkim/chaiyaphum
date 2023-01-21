@@ -1,0 +1,17 @@
+<div id="image-container"></div>
+
+<script>
+  // Fetch the images from the GitHub repository
+  fetch("https://api.github.com/repos/supakornkim/chaiyaphum/contents")
+    .then(response => response.json())
+    .then(data => {
+      // Iterate through the array of images
+      data.forEach(image => {
+        // Create an image element and set its source to the image's URL
+        var img = document.createElement("img");
+        img.src = image.download_url;
+        // Append the image to the image container
+        document.getElementById("image-container").appendChild(img);
+      });
+    });
+</script>
